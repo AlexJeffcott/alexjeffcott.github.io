@@ -51,8 +51,16 @@
                     'Authorization': `Bearer ${apiKey.value}`
                 },
                 body: JSON.stringify({
-                    model: 'pplx-7b-chat',
-                    messages: [{ role: 'user', content: question.value }]
+                    model: 'sonar-reasoning-pro',
+                    messages: [
+                        {
+                          "role": "system",
+                          "content": "Be precise and concise."
+                        },
+                        { 
+                            "role": "user",
+                            "content": question.value
+                        }]
                 })
             })
             .then(response => {
