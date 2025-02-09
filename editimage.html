@@ -100,6 +100,7 @@
       const isLoading = signal(false);
       const size = signal('1024x1024');
       const image = signal();
+      const thumbnail = signal();
 
       function validateImage(file) {
         return new Promise((resolve, reject) => {
@@ -113,16 +114,17 @@
             return;
           }
 
-          const img = new Image();
-          img.onload = () => {
-            if (img.width !== img.height) {
+          const thumbnail.value = new Image();
+          thumbnail.value.onload = () => {
+            if (thumbnail.value.width !== thumbnail.value.height) {
               reject('Image must be square');
               return;
             }
+            
             resolve(true);
           };
-          img.onerror = () => reject('Error loading image');
-          img.src = URL.createObjectURL(file);
+          thumbnail.value.onerror = () => reject('Error loading image');
+          thumbnail.value.src = URL.createObjectURL(file);
         });
       }
 
@@ -237,6 +239,7 @@
             </button>
 
             ${error.value && html`<div class="error">${error.value}</div>`}
+            ${thumbnail.value && html`<img src=${thumbnail.value} />`}
             ${imageResult.value &&
             html`<img class="imgResult" src=${imageResult.value} />`}
           </div>
