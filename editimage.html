@@ -156,7 +156,7 @@
 
         isLoading.value = true;
         error.value = '';
-
+console.log('!!', image.value)
         fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: {
@@ -239,9 +239,9 @@
             </button>
 
             ${error.value && html`<div class="error">${error.value}</div>`}
-            ${thumbnail.value && html`<img src=${thumbnail.value} />`}
+            ${thumbnail.value && html`<img src=${thumbnail.value.src} />`}
             ${imageResult.value &&
-            html`<img class="imgResult" src=${imageResult.value} />`}
+            html`<img src=${imageResult.value.src} />`}
           </div>
         `;
       }
