@@ -45,6 +45,17 @@
         margin-top: 20px;
         white-space: pre-wrap;
       }
+
+      .thumbnail {
+        width: 100px;
+        height: 100px;
+      }
+
+      .imageResult {
+        width: 300px;
+        min-height: 300px;
+      }
+      
       .controls {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -165,7 +176,7 @@ console.log('!!', image.value)
           },
           body: JSON.stringify({
             model: 'dall-e-2',
-            image: image.value,
+            image: thumbnail.value,
             prompt: prompt.value,
             size: size.value,
             n: 1,
@@ -225,6 +236,8 @@ console.log('!!', image.value)
               </div>
             </div>
 
+            ${thumbnail.value && html`<img class="thumbnail" src=${thumbnail.value.src} />`}
+            
             <textarea
               placeholder="Ask your question..."
               value=${prompt.value}
@@ -239,9 +252,8 @@ console.log('!!', image.value)
             </button>
 
             ${error.value && html`<div class="error">${error.value}</div>`}
-            ${thumbnail.value && html`<img src=${thumbnail.value.src} />`}
             ${imageResult.value &&
-            html`<img src=${imageResult.value.src} />`}
+            html`<img class="imageResult" src=${imageResult.value.src} />`}
           </div>
         `;
       }
