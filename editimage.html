@@ -114,7 +114,7 @@
             return;
           }
 
-          const thumbnail.value = new Image();
+          thumbnail.value = new Image();
           thumbnail.value.onload = () => {
             if (thumbnail.value.width !== thumbnail.value.height) {
               reject('Image must be square');
