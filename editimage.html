@@ -168,19 +168,19 @@
         isLoading.value = true;
         error.value = '';
 console.log('!!', image.value)
+        const formData = new FormData();
+        formData.append("image", image.value);
+        formData.append("model", 'dall-e-2');
+        formData.append("prompt", prompt.value);
+        formData.append("size", size.value);
+        formData.append("n", 1);
         fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${apiKey.value}`,
           },
-          body: JSON.stringify({
-            model: 'dall-e-2',
-            image: thumbnail.value,
-            prompt: prompt.value,
-            size: size.value,
-            n: 1,
-          }),
+          body: formData,
         })
           .then((response) => {
             if (!response.ok)
