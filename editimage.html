@@ -52,8 +52,8 @@
       }
 
       .imageResult {
-        width: 300px;
-        min-height: 300px;
+        width: 500px;
+        min-height: 500px;
       }
       
       .controls {
@@ -169,12 +169,12 @@
         error.value = '';
 
         const formData = new FormData();
-        console.log(image.value)
         formData.append("image", image.value);
         formData.append("model", 'dall-e-2');
         formData.append("prompt", prompt.value);
         formData.append("size", size.value);
         formData.append("n", 1);
+        
         fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: {
@@ -253,7 +253,7 @@
 
             ${error.value && html`<div class="error">${error.value}</div>`}
             ${imageResult.value &&
-            html`<img class="imageResult" src=${imageResult.value.src} />`}
+            html`<img class="imageResult" src=${imageResult.value} />`}
           </div>
         `;
       }
