@@ -68,7 +68,7 @@
                 return response.json();
             })
             .then(data => {
-                result.value = data.choices?.message?.content.reduce((acc, cur) => acc += cur.content, '') + data.citations.reduce((acc, cur) => acc += `<a href="${cur}">${cur}</a><br/>`, '\nCitations\n').replace('\n', '<br/>') || 'No response';
+                result.value = data.choices?.reduce((acc, cur) => acc += cur.message.content, '') + data.citations.reduce((acc, cur) => acc += '\n' + cur, '\nCitations\n') || 'No response';
             })
             .catch(err => {
                 error.value = `Error: ${err.message}`;
