@@ -77,7 +77,8 @@
                 return response.json();
             })
             .then(data => {
-                imageResult.value = data[0].url
+                console.log(data)
+                imageResult.value = data[0]?.url
             })
             .catch(err => {
                 error.value = `Error: ${err.message}`;
