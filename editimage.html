@@ -158,7 +158,7 @@
         fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${apiKey.value}`,
           },
           body: JSON.stringify({
