@@ -14,6 +14,445 @@
     <style>
       body {
         font-family: system-ui;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 100px;
+        margin: 10px 0;
+      }
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-right: 0.5rem;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+      .result {
+        margin-top: 20px;
+        white-space: pre-wrap;
+      }
+
+      .image-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .source-container {
+        position: relative;
+      }
+
+      .source-image {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: contain;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+
+      .canvas-container {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+      }
+
+      #drawingCanvas {
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+
+      .result-container {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .imageResult {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .control-group label {
+        font-weight: 500;
+      }
+      select, input[type="range"] {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+      }
+      .file-requirements {
+        font-size: 0.8em;
+        color: #666;
+        margin-top: 0.25rem;
+      }
+      .drawing-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin: 1rem 0;
+      }
+      .brush-size {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .brush-preview {
+        width: 20px;
+        height: 20px;
+        background: black;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const apiKey = localStorage.getItem('openaiApiKey') || '';
+
+      if (!apiKey) {
+        const key = prompt('Please enter your Open AI API key:');
+        if (key) saveApiKey(key);
+      }
+
+      function saveApiKey(key) {
+        localStorage.setItem('openaiApiKey', key);
+        apiKey.value = key;
+      }
+    </script>
+
+    <script type="module">
+      import { html, render, signal, effect } from 'preact-stand-alone';
+
+      const apiKey = signal(localStorage.getItem('openaiApiKey') || '');
+      const prompt = signal('');
+      const imageResult = signal('');
+      const error = signal('');
+      const isLoading = signal(false);
+      const size = signal('1024x1024');
+      const image = signal();
+      const imageUrl = signal('');
+      const brushSize = signal(20);
+      const isDrawing = signal(false);
+
+      let canvas, ctx;
+      let lastX = 0;
+      let lastY = 0;
+
+      function initCanvas() {
+        canvas = document.getElementById('drawingCanvas');
+        if (!canvas) return;
+        
+        ctx = canvas.getContext('2d');
+        
+        // Set canvas size to match the image
+        const img = document.querySelector('.source-image');
+        if (img) {
+          const rect = img.getBoundingClientRect();
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Drawing events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+      }
+
+      function startDrawing(e) {
+        isDrawing.value = true;
+        [lastX, lastY] = getMousePos(canvas, e);
+      }
+
+      function draw(e) {
+        if (!isDrawing.value) return;
+
+        const [x, y] = getMousePos(canvas, e);
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = brushSize.value;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        [lastX, lastY] = [x, y];
+      }
+
+      function stopDrawing() {
+        isDrawing.value = false;
+      }
+
+      function getMousePos(canvas, e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return [
+          (e.clientX - rect.left) * scaleX,
+          (e.clientY - rect.top) * scaleY
+        ];
+      }
+
+      function clearMask() {
+        if (!ctx) return;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function validateImage(file) {
+        return new Promise((resolve, reject) => {
+          if (file.size > 4 * 1024 * 1024) {
+            reject('File must be less than 4MB');
+            return;
+          }
+
+          if (file.type !== 'image/png') {
+            reject('File must be a PNG image');
+            return;
+          }
+
+          const img = new Image();
+          img.onload = () => {
+            if (img.width !== img.height) {
+              reject('Image must be square');
+              return;
+            }
+            resolve(true);
+          };
+          img.onerror = () => reject('Error loading image');
+          img.src = URL.createObjectURL(file);
+          imageUrl.value = img.src;
+        });
+      }
+
+      async function handleImageChange(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          await validateImage(file);
+          image.value = file;
+          error.value = '';
+          // Initialize canvas after image is loaded
+          setTimeout(initCanvas, 100);
+        } catch (err) {
+          error.value = err;
+          e.target.value = ''; // Reset file input
+          image.value = undefined;
+          imageUrl.value = '';
+        }
+      }
+
+      function getMaskBlob() {
+        return new Promise((resolve) => {
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, 'image/png');
+        });
+      }
+
+      async function generateImage() {
+        if (!prompt.value.trim()) {
+          error.value = 'Please enter a prompt';
+          return;
+        }
+
+        if (!image.value) {
+          error.value = 'Please select an image';
+          return;
+        }
+
+        isLoading.value = true;
+        error.value = '';
+
+        try {
+          const maskBlob = await getMaskBlob();
+          const formData = new FormData();
+          formData.append("image", image.value);
+          formData.append("mask", maskBlob);
+          formData.append("model", 'dall-e-2');
+          formData.append("prompt", prompt.value);
+          formData.append("size", size.value);
+          formData.append("n", 1);
+          
+          const response = await fetch('https://api.openai.com/v1/images/edits', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey.value}`,
+            },
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          imageResult.value = data.data[0].url;
+        } catch (err) {
+          error.value = `Error: ${err.message}`;
+        } finally {
+          isLoading.value = false;
+        }
+      }
+
+      effect(() => {
+        const preview = document.querySelector('.brush-preview');
+        if (preview) {
+          preview.style.width = `${brushSize.value}px`;
+          preview.style.height = `${brushSize.value}px`;
+        }
+      });
+
+      function App() {
+        return html`
+          <div>
+            <h1>Edit an image with Dall-e-2</h1>
+            
+            <div class="controls">
+              <div class="control-group">
+                <label for="image">Source Image</label>
+                <input 
+                  type="file" 
+                  id="image" 
+                  accept="image/png"
+                  onChange=${handleImageChange}
+                />
+                <div class="file-requirements">
+                  Requirements:
+                  <ul>
+                    <li>PNG format</li>
+                    <li>Square dimensions</li>
+                    <li>Less than 4MB</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label for="size">Output Size</label>
+                <select 
+                  id="size" 
+                  value=${size.value} 
+                  onChange=${(e) => (size.value = e.target.value)}
+                >
+                  <option value="256x256">256x256</option>
+                  <option value="512x512">512x512</option>
+                  <option value="1024x1024">1024x1024</option>
+                </select>
+              </div>
+            </div>
+
+            ${imageUrl.value && html`
+              <div class="drawing-controls">
+                <div class="brush-size">
+                  <label for="brush">Brush Size:</label>
+                  <input 
+                    type="range" 
+                    id="brush" 
+                    min="1" 
+                    max="50" 
+                    value=${brushSize.value}
+                    onInput=${(e) => (brushSize.value = parseInt(e.target.value))}
+                  />
+                  <div class="brush-preview"></div>
+                </div>
+                <button onClick=${clearMask}>Clear Mask</button>
+              </div>
+            `}
+
+            <textarea
+              placeholder="Describe how you want to edit the image..."
+              value=${prompt.value}
+              onInput=${(e) => (prompt.value = e.target.value)}
+            ></textarea>
+
+            <button 
+              onClick=${generateImage} 
+              disabled=${isLoading.value || !image.value || !prompt.value.trim()}
+            >
+              ${isLoading.value ? 'Generating image...' : 'Generate Image'}
+            </button>
+
+            ${error.value && html`<div class="error">${error.value}</div>`}
+            
+            <div class="image-container">
+              <div class="source-container">
+                ${imageUrl.value && html`
+                  <img class="source-image" src=${imageUrl.value} />
+                  <div class="canvas-container">
+                    <canvas id="drawingCanvas"></canvas>
+                  </div>
+                `}
+              </div>
+              <div class="result-container">
+                ${imageResult.value && html`<img class="imageResult" src=${imageResult.value} />`}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      render(html`<${App} />`, document.body);
+    </script>
+  </body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Open AI API</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "preact-stand-alone": "https://cdn.jsdelivr.net/npm/preact-htm-signals-standalone/dist/standalone.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: system-ui;
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
@@ -262,3 +701,4 @@
     </script>
   </body>
 </html>
+ -->
