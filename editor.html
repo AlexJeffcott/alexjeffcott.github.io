@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,37 +13,44 @@
             line-height: 1.6;
             background: #f5f5f5;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         .editors {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin-bottom: 2rem;
         }
+
         .editor-container {
             background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .editor-header {
             background: #4a90e2;
             color: white;
             padding: 1rem;
             font-weight: 600;
         }
+
         .editor {
             height: 400px;
             border: 1px solid #ddd;
         }
+
         .buttons {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
         }
+
         button {
             background: #4a90e2;
             color: white;
@@ -53,46 +61,55 @@
             font-size: 16px;
             transition: background 0.2s;
         }
+
         button:hover {
             background: #357abd;
         }
+
         .resultContainer {
             display: grid;
             grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
+
         .results {
             background: white;
             padding: 1.5rem;
             border-radius: 8px;
             white-space: pre-wrap;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .success {
             border-left: 4px solid #388e3c;
         }
+
         .error {
             border-left: 4px solid #d32f2f;
         }
+
         .nav-link {
             display: inline-block;
             color: #4a90e2;
             text-decoration: none;
         }
+
         .nav-link:hover {
             text-decoration: underline;
         }
     </style>
-        <link rel="stylesheet" href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css">
+    <link rel="stylesheet" href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css">
     <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
-    
+
 </head>
-<body>    
+
+<body>
     <div class="container">
         <h1>Code Editor</h1>
-            <select id="fileSelector"></select>
-    <button id="saveButton">Save</button>
-    <button id="loadButton">Load</button>
+        <select id="fileSelector"></select>
+        <button id="saveButton">Save</button>
+        <button id="loadButton">Load</button>
         <div class="editors">
             <div class="editor-container">
                 <div class="editor-header">run() Function</div>
@@ -108,10 +125,10 @@
             <button onclick="runBenchmark()">Run Benchmark</button>
             <button onclick="runTests()">Run Tests</button>
         </div>
-<div class="resultContainer">
-        <div id="benchmarkResults" class="results"></div>
-        <div id="testResults" class="results"></div>
-</div>
+        <div class="resultContainer">
+            <div id="benchmarkResults" class="results"></div>
+            <div id="testResults" class="results"></div>
+        </div>
         <a href="index.html" class="nav-link">← Back to Home</a>
     </div>
 
@@ -148,10 +165,10 @@ function run(arr: number[] = defaultArr): number {
         }
     });
 `;
-        
+
         // Initialize Monaco Editor
         require.config({ paths: { vs: 'https://unpkg.com/monaco-editor/min/vs' } });
-        require(['vs/editor/editor.main'], function() {
+        require(['vs/editor/editor.main'], function () {
             window.runEditor = monaco.editor.create(document.getElementById('runEditor'), {
                 value: defaultRunFunction,
                 language: 'typescript',
@@ -171,51 +188,54 @@ function run(arr: number[] = defaultArr): number {
             });
         });
 
-            // File management
-            const fileSelector = document.getElementById('fileSelector');
+        // File management
+        const fileSelector = document.getElementById('fileSelector');
 
-            // Load files from local storage to dropdown
-            const loadFilesToDropdown = () => {
-                fileSelector.innerHTML = '';
-                Object.keys(localStorage).forEach(key => {
+        // Load files from local storage to dropdown
+        const loadFilesToDropdown = () => {
+            fileSelector.innerHTML = '';
+
+            for (const key in localStorage) {
+                if (key.startsWith('monaco:')) {
                     const option = document.createElement('option');
-                    option.value = key;
-                    option.textContent = key;
+                    option.value = key.replace('monaco:', '');
+                    option.textContent = key.replace('monaco:', '');
                     fileSelector.appendChild(option);
-                });
-            };
-
-            // Save file to local storage
-            const saveFile = () => {
-                const selectedFile = fileSelector.value;
-                const content = window.runEditor.getValue() + "ENDOFEDITOR1STARTOFEDITOR2" + window.testEditor.getValue(); // Combine editors' contents
-                localStorage.setItem(selectedFile, content);
-                loadFilesToDropdown();
-            };
-
-            // Load selected file from local storage
-            const loadFile = () => {
-                const selectedFile = fileSelector.value;
-                if (localStorage.getItem(selectedFile)) {
-                    const content = localStorage.getItem(selectedFile).split("ENDOFEDITOR1STARTOFEDITOR2");
-                    editor1.setValue(content[0]);
-                    editor2.setValue(content[1]);
                 }
-            };
+            }
+        };
 
-            document.getElementById('saveButton').onclick = saveFile;
-            document.getElementById('loadButton').onclick = loadFile;
-
-            // Initialize dropdown
+        // Save file to local storage
+        const saveFile = () => {
+            const filename = window.prompt('', fileSelector.value)
+            const content = window.runEditor.getValue() + "ENDOFEDITOR1STARTOFEDITOR2" + window.testEditor.getValue();
+            localStorage.setItem('monaco:' + filename, content);
             loadFilesToDropdown();
+        };
+
+        // Load selected file from local storage
+        const loadFile = () => {
+            const selectedFile = fileSelector.value;
+            if (localStorage.getItem(selectedFile)) {
+                const content = localStorage.getItem('monaco:' + selectedFile).split("ENDOFEDITOR1STARTOFEDITOR2");
+                window.runEditor.setValue(content[0]);
+                window.testEditor.setValue(content[1]);
+            }
+        };
+
+        document.getElementById('saveButton').onclick = saveFile;
+        document.getElementById('loadButton').onclick = loadFile;
+
+        // Initialize dropdown
+        loadFilesToDropdown();
 
         // Execute functions from editor content
-        window.runBenchmark = async function() {
+        window.runBenchmark = async function () {
             const benchmarkResults = document.getElementById('benchmarkResults');
             try {
                 const runCode = window.runEditor.getValue();
                 const fn = new Function(runCode + '\nreturn run;')();
-                
+
                 const result = await runBenchmark(fn);
                 benchmarkResults.textContent = result.success ? result.results : result.error;
                 benchmarkResults.className = 'results ' + (result.success ? 'success' : 'error');
@@ -225,22 +245,22 @@ function run(arr: number[] = defaultArr): number {
             }
         };
 
-        window.runTests = async function() {
+        window.runTests = async function () {
             const testResults = document.getElementById('testResults');
             try {
                 const runCode = window.runEditor.getValue();
                 const testCode = window.testEditor.getValue();
-                
+
                 // Create a module-like environment
                 const moduleCode = `
                     ${runCode}
                     ${testCode}
                     return { runTests };
                 `;
-                
+
                 const { runTests } = new Function(moduleCode)();
                 const result = await runTestSuite(runTests);
-                
+
                 testResults.textContent = result.success ? result.results : result.error;
                 testResults.className = 'results ' + (result.success && result.passed ? 'success' : 'error');
             } catch (error) {
@@ -250,4 +270,5 @@ function run(arr: number[] = defaultArr): number {
         };
     </script>
 </body>
+
 </html>
