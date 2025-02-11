@@ -165,6 +165,7 @@ function run(arr: number[] = defaultArr): number {
             throw new Error("Expected number but got '" + typeof result + "'");
         }
     });
+}
 `;
 
         // Initialize Monaco Editor
@@ -188,6 +189,10 @@ function run(arr: number[] = defaultArr): number {
                 lineNumbers: "off"
             });
         });
+
+        monaco.languages.typescript.javascriptDefaults.addExtraLib(`declare namespace Deno {
+    function test(path: string, () => Promise<void> | void): Promise<void>;
+}`, 'deno.d.ts');
 
         // File management
         const fileSelector = document.getElementById('fileSelector');
