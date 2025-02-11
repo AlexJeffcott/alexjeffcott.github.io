@@ -247,13 +247,6 @@ function run(arr: number[] = defaultArr): number {
             esbuiltIsInited = true
         }
 
-        const result = await esbuild.transform(typescriptCode, {
-            loader: 'ts',
-            target: 'es2015'
-        });
-
-        const jsCode = result.code;
-
         // Execute functions from editor content
         window.runBenchmark = async function () {
             const benchmarkResults = document.getElementById('benchmarkResults');
@@ -273,8 +266,8 @@ function run(arr: number[] = defaultArr): number {
         window.runTests = async function () {
             const testResults = document.getElementById('testResults');
             try {
-                const runCode = await esbuild.transform(window.runEditor.getValue(), { loader: 'ts', target: 'chrome130' })
-                const testCode = await esbuild.transform(window.testEditor.getValue(), { loader: 'ts', target: 'chrome130' })
+                const runCode = (await esbuild.transform(window.runEditor.getValue(), { loader: 'ts', target: 'chrome130' })).code
+                const testCode = (await esbuild.transform(window.testEditor.getValue(), { loader: 'ts', target: 'chrome130' })).code
 
                 // Create a module-like environment
                 const moduleCode = `
