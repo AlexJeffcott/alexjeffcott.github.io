@@ -146,8 +146,7 @@ function run(arr: number[] = defaultArr): number {
             sum += arr[i]
     }
     return sum;
-}
-`;
+}`;
 
         const defaultTestFunction = `async function runTests() {
     await Deno.test('run function should sum arr items', () => {
@@ -165,11 +164,11 @@ function run(arr: number[] = defaultArr): number {
             throw new Error("Expected number but got '" + typeof result + "'");
         }
     });
-}
-`;
+}`;
 
         // Initialize Monaco Editor
         require.config({ paths: { vs: 'https://unpkg.com/monaco-editor/min/vs' } });
+        
         require(['vs/editor/editor.main'], function () {
             window.runEditor = monaco.editor.create(document.getElementById('runEditor'), {
                 value: defaultRunFunction,
@@ -188,11 +187,11 @@ function run(arr: number[] = defaultArr): number {
                 automaticLayout: true,
                 lineNumbers: "off"
             });
-        });
 
-        monaco.languages.typescript.javascriptDefaults.addExtraLib(`declare namespace Deno {
+            monaco.languages.typescript.javascriptDefaults.addExtraLib(`declare namespace Deno {
     function test(path: string, () => Promise<void> | void): Promise<void>;
 }`, 'deno.d.ts');
+        });
 
         // File management
         const fileSelector = document.getElementById('fileSelector');
