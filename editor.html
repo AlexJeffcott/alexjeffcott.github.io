@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .editors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .editor-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .editor-header {
+            background: #4a90e2;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        .editor {
+            height: 400px;
+            border: 1px solid #ddd;
+        }
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #357abd;
+        }
+        .results {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            border-left: 4px solid #388e3c;
+        }
+        .error {
+            border-left: 4px solid #d32f2f;
+        }
+        .nav-link {
+            display: inline-block;
+            color: #4a90e2;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Code Editor</h1>
+        
+        <div class="editors">
+            <div class="editor-container">
+                <div class="editor-header">run() Function</div>
+                <div id="runEditor" class="editor"></div>
+            </div>
+            <div class="editor-container">
+                <div class="editor-header">runTests() Function</div>
+                <div id="testEditor" class="editor"></div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="runBenchmark()">Run Benchmark</button>
+            <button onclick="runTests()">Run Tests</button>
+        </div>
+
+        <div id="benchmarkResults" class="results"></div>
+        <div id="testResults" class="results"></div>
+
+        <a href="index.html" class="nav-link">← Back to Home</a>
+    </div>
+
+    <script type="module">
+        import { runBenchmark } from './benchmark.js';
+        import { runTestSuite } from './test-runner.js';
+
+        // Default code templates
+        const defaultRunFunction = `function run() {
+    for (let i = 0; i < 50; i++) {
+        // Perform loop iteration
+    }
+    return 'done';
+}`;
+
+        const defaultTestFunction = `export async function runTests() {
+    await Deno.test('run function should complete 50 iterations', () => {
+        const result = run();
+        if (result !== 'done') {
+            throw new Error(\`Expected 'done' but got '\${result}'\`);
+        }
+    });
+
+    await Deno.test('run function should return a string', () => {
+        const result = run();
+        if (typeof result !== 'string') {
+            throw new Error(\`Expected string but got \${typeof result}\`);
+        }
+    });
+}`;
+
+        // Initialize Monaco Editor
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            window.runEditor = monaco.editor.create(document.getElementById('runEditor'), {
+                value: defaultRunFunction,
+                language: 'javascript',
+                theme: 'vs',
+                minimap: { enabled: false },
+                automaticLayout: true
+            });
+
+            window.testEditor = monaco.editor.create(document.getElementById('testEditor'), {
+                value: defaultTestFunction,
+                language: 'javascript',
+                theme: 'vs',
+                minimap: { enabled: false },
+                automaticLayout: true
+            });
+        });
+
+        // Execute functions from editor content
+        window.runBenchmark = async function() {
+            const benchmarkResults = document.getElementById('benchmarkResults');
+            try {
+                const runCode = window.runEditor.getValue();
+                const fn = new Function(runCode + '\nreturn run;')();
+                
+                const result = await runBenchmark(fn);
+                benchmarkResults.textContent = result.success ? result.results : result.error;
+                benchmarkResults.className = 'results ' + (result.success ? 'success' : 'error');
+            } catch (error) {
+                benchmarkResults.textContent = `Error: ${error.message}`;
+                benchmarkResults.className = 'results error';
+            }
+        };
+
+        window.runTests = async function() {
+            const testResults = document.getElementById('testResults');
+            try {
+                const runCode = window.runEditor.getValue();
+                const testCode = window.testEditor.getValue();
+                
+                // Create a module-like environment
+                const moduleCode = `
+                    ${runCode}
+                    ${testCode}
+                    return { runTests };
+                `;
+                
+                const { runTests } = new Function(moduleCode)();
+                const result = await runTestSuite(runTests);
+                
+                testResults.textContent = result.success ? result.results : result.error;
+                testResults.className = 'results ' + (result.success && result.passed ? 'success' : 'error');
+            } catch (error) {
+                testResults.textContent = `Error: ${error.message}`;
+                testResults.className = 'results error';
+            }
+        };
+    </script>
+</body>
+</html>
