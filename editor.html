@@ -235,14 +235,14 @@ function run(arr: number[] = defaultArr): number {
         // Initialize dropdown
         loadFilesToDropdown();
 
-        import * as esbuild from 'https://unpkg.com/esbuild-wasm/esm/browser.min.js';
+        import * as esbuild from 'https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js';
 
         // init esbuild
         let esbuiltIsInited = false
 
         if (!esbuiltIsInited) {
             await esbuild.initialize({
-                wasmURL: 'https://unpkg.com/esbuild-wasm/esbuild.wasm'
+                wasmURL: 'https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm'
             });
             esbuiltIsInited = true
         }
