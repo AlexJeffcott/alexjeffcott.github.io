@@ -235,23 +235,11 @@ function run(arr: number[] = defaultArr): number {
         // Initialize dropdown
         loadFilesToDropdown();
 
-        import * as esbuild from 'https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js';
-
-        // init esbuild
-        let esbuiltIsInited = false
-
-        if (!esbuiltIsInited) {
-            await esbuild.initialize({
-                wasmURL: 'https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm'
-            });
-            esbuiltIsInited = true
-        }
-
         // Execute functions from editor content
         window.runBenchmark = async function () {
             const benchmarkResults = document.getElementById('benchmarkResults');
             try {
-                const runCode = window.runEditor.getValue();
+                const runCode = (await esbuild.transform(window.runEditor.getValue(), { loader: 'ts', target: 'chrome130' })).code
                 const fn = new Function(runCode + '\nreturn run;')();
 
                 const result = await runBenchmark(fn);
@@ -286,6 +274,19 @@ function run(arr: number[] = defaultArr): number {
                 testResults.className = 'results error';
             }
         };
+
+        import * as esbuild from 'https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js';
+
+        // init esbuild
+        let esbuiltIsInited = false
+
+        if (!esbuiltIsInited) {
+            await esbuild.initialize({
+                wasmURL: 'https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm'
+            });
+            esbuiltIsInited = true
+        }
+
     </script>
 </body>
 
