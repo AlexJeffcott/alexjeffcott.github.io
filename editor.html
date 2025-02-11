@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Editor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -57,6 +56,10 @@
         button:hover {
             background: #357abd;
         }
+        .resultContainer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
         .results {
             background: white;
             padding: 1.5rem;
@@ -80,11 +83,16 @@
             text-decoration: underline;
         }
     </style>
+        <link rel="stylesheet" href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css">
+    <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
+    
 </head>
-<body>
+<body>    
     <div class="container">
         <h1>Code Editor</h1>
-        
+            <select id="fileSelector"></select>
+    <button id="saveButton">Save</button>
+    <button id="loadButton">Load</button>
         <div class="editors">
             <div class="editor-container">
                 <div class="editor-header">run() Function</div>
@@ -100,10 +108,10 @@
             <button onclick="runBenchmark()">Run Benchmark</button>
             <button onclick="runTests()">Run Tests</button>
         </div>
-
+<div class="resultContainer">
         <div id="benchmarkResults" class="results"></div>
         <div id="testResults" class="results"></div>
-
+</div>
         <a href="index.html" class="nav-link">← Back to Home</a>
     </div>
 
