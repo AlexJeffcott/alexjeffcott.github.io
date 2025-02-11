@@ -112,47 +112,94 @@
         import { runTestSuite } from './test-runner.js';
 
         // Default code templates
-        const defaultRunFunction = `function run() {
-    for (let i = 0; i < 50; i++) {
-        // Perform loop iteration
+        const defaultRunFunction = `const defaultArr = new Array(999999).fill(undefined).map(i => i)
+
+function run(arr: number[] = defaultArr): number {
+    let sum = 0
+    for (let i = 0; i < arr.length; i++) {
+            sum += arr[i]
     }
-    return 'done';
-}`;
+    return sum;
+}
+`;
 
-        const defaultTestFunction = `export async function runTests() {
-    await Deno.test('run function should complete 50 iterations', () => {
-        const result = run();
-        if (result !== 'done') {
-            throw new Error(\`Expected 'done' but got '\${result}'\`);
+        const defaultTestFunction = `async function runTests() {
+    await Deno.test('run function should sum arr items', () => {
+        const arr = [0, 1, 2]
+        const result = run(arr);
+        if (result !== 3) {
+            throw new Error(`Expected '3' but got '${result}'`);
         }
     });
 
-    await Deno.test('run function should return a string', () => {
-        const result = run();
-        if (typeof result !== 'string') {
-            throw new Error(\`Expected string but got \${typeof result}\`);
+    await Deno.test('run function should return a number', () => {
+        const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        const result = run(arr);
+        if (typeof result !== 'number') {
+            throw new Error(`Expected number but got ${typeof result}`);
         }
     });
-}`;
-
+`;
+        
         // Initialize Monaco Editor
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
         require(['vs/editor/editor.main'], function() {
             window.runEditor = monaco.editor.create(document.getElementById('runEditor'), {
                 value: defaultRunFunction,
-                language: 'javascript',
-                theme: 'vs',
+                language: 'typescript',
+                theme: 'vs-light',
                 minimap: { enabled: false },
-                automaticLayout: true
+                automaticLayout: true,
+                lineNumbers: "off"
             });
 
             window.testEditor = monaco.editor.create(document.getElementById('testEditor'), {
                 value: defaultTestFunction,
-                language: 'javascript',
-                theme: 'vs',
+                language: 'typescript',
+                theme: 'vs-light',
                 minimap: { enabled: false },
-                automaticLayout: true
+                automaticLayout: true,
+                lineNumbers: "off"
             });
+        });
+
+            // File management
+            const fileSelector = document.getElementById('fileSelector');
+
+            // Load files from local storage to dropdown
+            const loadFilesToDropdown = () => {
+                fileSelector.innerHTML = '';
+                Object.keys(localStorage).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = key;
+                    fileSelector.appendChild(option);
+                });
+            };
+
+            // Save file to local storage
+            const saveFile = () => {
+                const selectedFile = fileSelector.value;
+                const content = window.runEditor.getValue() + "ENDOFEDITOR1STARTOFEDITOR2" + window.testEditor.getValue(); // Combine editors' contents
+                localStorage.setItem(selectedFile, content);
+                loadFilesToDropdown();
+            };
+
+            // Load selected file from local storage
+            const loadFile = () => {
+                const selectedFile = fileSelector.value;
+                if (localStorage.getItem(selectedFile)) {
+                    const content = localStorage.getItem(selectedFile).split("ENDOFEDITOR1STARTOFEDITOR2");
+                    editor1.setValue(content[0]);
+                    editor2.setValue(content[1]);
+                }
+            };
+
+            document.getElementById('saveButton').onclick = saveFile;
+            document.getElementById('loadButton').onclick = loadFile;
+
+            // Initialize dropdown
+            loadFilesToDropdown();
         });
 
         // Execute functions from editor content
