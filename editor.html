@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -101,7 +100,6 @@
     </style>
     <link rel="stylesheet" href="https://unpkg.com/monaco-editor/min/vs/editor/editor.main.css">
     <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
-
 </head>
 
 <body>
@@ -137,7 +135,6 @@
         import { runBenchmark } from './benchmark.js';
         import { runTestSuite } from './test-runner.js';
 
-        // Default code templates
         const defaultRunFunction = `const defaultArr = new Array(999999).fill(undefined).map(i => i)
 
 function run(arr: number[] = defaultArr): number {
@@ -170,6 +167,10 @@ function run(arr: number[] = defaultArr): number {
         require.config({ paths: { vs: 'https://unpkg.com/monaco-editor/min/vs' } });
         
         require(['vs/editor/editor.main'], function () {
+            monaco.languages.typescript.javascriptDefaults.addExtraLib(`declare namespace Deno {
+    function test(path: string, () => Promise<void> | void): Promise<void>;
+}`, 'deno.d.ts');
+            
             window.runEditor = monaco.editor.create(document.getElementById('runEditor'), {
                 value: defaultRunFunction,
                 language: 'typescript',
@@ -187,16 +188,11 @@ function run(arr: number[] = defaultArr): number {
                 automaticLayout: true,
                 lineNumbers: "off"
             });
-
-            monaco.languages.typescript.javascriptDefaults.addExtraLib(`declare namespace Deno {
-    function test(path: string, () => Promise<void> | void): Promise<void>;
-}`, 'deno.d.ts');
         });
 
         // File management
         const fileSelector = document.getElementById('fileSelector');
 
-        // Load files from local storage to dropdown
         const loadFilesToDropdown = () => {
             let isEmpty = true
             fileSelector.innerHTML = '';
@@ -215,7 +211,6 @@ function run(arr: number[] = defaultArr): number {
             }
         };
 
-        // Save file to local storage
         const saveFile = () => {
             const filename = window.prompt('', fileSelector.value)
             const content = window.runEditor.getValue() + "ENDOFEDITOR1STARTOFEDITOR2" + window.testEditor.getValue();
@@ -223,7 +218,6 @@ function run(arr: number[] = defaultArr): number {
             loadFilesToDropdown();
         };
 
-        // Load selected file from local storage
         const loadFile = () => {
             const selectedFile = fileSelector.value;
             if (localStorage.getItem(selectedFile)) {
@@ -236,10 +230,8 @@ function run(arr: number[] = defaultArr): number {
         document.getElementById('saveButton').onclick = saveFile;
         document.getElementById('loadButton').onclick = loadFile;
 
-        // Initialize dropdown
         loadFilesToDropdown();
 
-        // Execute functions from editor content
         window.runBenchmark = async function () {
             const benchmarkResults = document.getElementById('benchmarkResults');
             try {
@@ -261,7 +253,6 @@ function run(arr: number[] = defaultArr): number {
                 const runCode = (await esbuild.transform(window.runEditor.getValue(), { loader: 'ts', target: 'chrome130' })).code
                 const testCode = (await esbuild.transform(window.testEditor.getValue(), { loader: 'ts', target: 'chrome130' })).code
 
-                // Create a module-like environment
                 const moduleCode = `
                     ${runCode}
                     ${testCode}
@@ -280,18 +271,13 @@ function run(arr: number[] = defaultArr): number {
         };
 
         import * as esbuild from 'https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js';
-
-        // init esbuild
         let esbuiltIsInited = false
-
         if (!esbuiltIsInited) {
             await esbuild.initialize({
                 wasmURL: 'https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm'
             });
             esbuiltIsInited = true
         }
-
     </script>
 </body>
-
 </html>
