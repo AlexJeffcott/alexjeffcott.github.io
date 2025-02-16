@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["<define:globalThis.ENV>"],
+  "sourcesContent": [""],
+  "mappings": "0VAAA,IAAAA,EAAAC,EAAA",
+  "names": ["init_define_globalThis_ENV", "__esmMin"]
+}
