@@ -1,1 +1,2 @@
-export * from '@/pages/landing/mod.tsx'
+export * from '@/pages/code/mod.tsx'
+export * from '@/pages/home/mod.tsx'

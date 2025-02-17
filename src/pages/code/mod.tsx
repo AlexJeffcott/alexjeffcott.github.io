@@ -1,14 +1,11 @@
 import { type FunctionComponent } from 'preact'
-import classes from '@/pages/landing/landing.module.css'
-import { ToggleColorThemeBtn, ToggleThemeBtn } from '@/actions-ui/mod.ts'
+import classes from '@/pages/code/code.module.css'
 import {
-  effect,
-  signal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from '@preact/signals'
-import { useRef } from 'preact/hooks'
+  NavigateToHomeBtn,
+  ToggleColorThemeBtn,
+  ToggleThemeBtn,
+} from '@/actions-ui/mod.ts'
+import { effect, signal, useComputed, useSignal } from '@preact/signals'
 import { onMount, useStableCallback } from '@/hooks/mod.ts'
 import { runBenchmarkSuite } from './benchmark.ts'
 import { runTestSuite } from './test-runner.ts'
@@ -38,17 +35,6 @@ const cancelable = signal<
     }
   > | undefined
 >()
-
-const defaultConfig = {
-  paths: {
-    vs: '...',
-  },
-  'vs/nls': {
-    availableLanguages: {
-      '*': 'en',
-    },
-  },
-}
 
 const currentFileName = signal<string>('script.ts')
 
@@ -107,7 +93,6 @@ effect(() => {
   }
 })
 
-// NOTE: when the filename or project name changes, update the code
 effect(() => {
   const ed = editor.value
   ed?.setValue(currentProject.value[currentFileName.value])
@@ -275,7 +260,7 @@ type Loader = esbuildWasm.Loader
 type BuildOptions = esbuildWasm.BuildOptions
 type BuildResult = esbuildWasm.BuildResult<esbuildWasm.BuildOptions>
 type Stop = typeof esbuildWasm.stop
-type Build = typeof esbuildWasm.build
+type Build = typeof esbuild.build
 type Initialize = typeof esbuildWasm.initialize
 type InitializeOptions = esbuildWasm.InitializeOptions
 
@@ -294,7 +279,7 @@ const BenchmarkResults: FunctionComponent = ({ children }) => {
   return <div>{children}</div>
 }
 
-export const LandingPage: FunctionComponent = () => {
+export const CodePage: FunctionComponent = () => {
   onMount(() => {
     if (esbuild.value === undefined) {
       import('https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js').then(
@@ -315,7 +300,7 @@ export const LandingPage: FunctionComponent = () => {
   return (
     <main class={classes.page}>
       <header class={classes.header}>
-        <a href='/'>go home</a>
+        <NavigateToHomeBtn />
         <ToggleThemeBtn />
         <ToggleColorThemeBtn />
       </header>
@@ -326,3 +311,4 @@ export const LandingPage: FunctionComponent = () => {
     </main>
   )
 }
+
