@@ -126,7 +126,6 @@ Key principles:
           }
 
           const data = await result.json();
-          console.log(data)
           response.value = data.content[0].text;
         } catch (err) {
           error.value = `Error: ${err.message}`;
