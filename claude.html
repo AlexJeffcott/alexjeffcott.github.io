@@ -126,7 +126,8 @@ Key principles:
           }
 
           const data = await result.json();
-          response.value = data.choices[0].message.content;
+          console.log(data)
+          response.value = data.content[0];
         } catch (err) {
           error.value = `Error: ${err.message}`;
         } finally {
