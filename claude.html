@@ -58,15 +58,15 @@
   </head>
   <body>
     <script>
-      const apiKey = localStorage.getItem('openaiApiKey') || '';
+      const apiKey = localStorage.getItem('claudeApiKey') || '';
 
       if (!apiKey) {
-        const key = prompt('Please enter your Open AI API key:');
+        const key = prompt('Please enter your Claude API key:');
         if (key) saveApiKey(key);
       }
 
       function saveApiKey(key) {
-        localStorage.setItem('openaiApiKey', key);
+        localStorage.setItem('claudeApiKey', key);
         apiKey.value = key;
       }
     </script>
@@ -74,7 +74,7 @@
     <script type="module">
       import { html, render, signal } from 'preact-stand-alone';
 
-      const apiKey = signal(localStorage.getItem('openaiApiKey') || '');
+      const apiKey = signal(localStorage.getItem('claudeApiKey') || '');
       const prompt = signal('');
       const response = signal('');
       const error = signal('');
@@ -100,19 +100,20 @@ Key principles:
         error.value = '';
 
         try {
-          const result = await fetch('https://api.openai.com/v1/chat/completions', {
+          const result = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              "anthropic-version": "2023-06-01",
               'Authorization': `Bearer ${apiKey.value}`,
             },
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'claude-3-7-sonnet-20250219',
               messages: [
-                { role: 'system', content: systemPrompt },
                 { role: 'user', content: prompt.value }
               ],
               temperature: 0.1,
+              system: systemPrompt,
             })
           });
 
@@ -133,7 +134,7 @@ Key principles:
       function App() {
         return html`
           <div>
-            <h1>Code Assistant</h1>
+            <h1>Claude Assistant</h1>
             
             <textarea
               placeholder="Enter your code-related question..."
