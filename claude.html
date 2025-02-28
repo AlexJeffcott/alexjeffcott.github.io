@@ -104,8 +104,10 @@ Key principles:
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              "anthropic-version": "2023-06-01",
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': true,
               'Authorization': `Bearer ${apiKey.value}`,
+              'X-Api-Key': apiKey.value
             },
             body: JSON.stringify({
               model: 'claude-3-7-sonnet-20250219',
