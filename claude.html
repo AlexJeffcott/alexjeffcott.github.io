@@ -148,10 +148,9 @@ Key principles:
         }
       }
 
-  const handleChange = (e: Event) => {
-    const select = e.target as HTMLSelectElement;
+  const handleChange = (e) => {
+    const select = e.target;
     selectedPersona.value = select.value;
-    systemPrompt.value = personas[select.value];
   };
       function App() {
         return html`
