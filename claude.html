@@ -101,8 +101,7 @@ Key principles:
       const response = signal('');
       const error = signal('');
       const isLoading = signal(false);
-
-      const selectedPersona = useSignal("alex");
+      const selectedPersona = signal("alex");
 
       async function generateResponse() {
         if (!prompt.value.trim()) {
