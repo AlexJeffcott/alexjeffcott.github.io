@@ -74,13 +74,8 @@
     <script type="module">
       import { html, render, signal } from 'preact-stand-alone';
 
-      const apiKey = signal(localStorage.getItem('claudeApiKey') || '');
-      const prompt = signal('');
-      const response = signal('');
-      const error = signal('');
-      const isLoading = signal(false);
-
-      const systemPrompt = `You are an expert TypeScript web engineer who specializes in Preact and signals.
+      const personas = {
+alex: `You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
 - Be precise and concise
 - Only explain when asked
@@ -88,7 +83,26 @@ Key principles:
 - Avoid dependencies unless specifically requested
 - Write clean, type-safe code
 - Prefer modules to classes
-- Focus on modern web standards and best practices`;
+- Don't use Tailwind or css utilities
+- Only use specified techs
+- Focus on modern web standards and best practices
+- If more information is needed, you ask.`,
+        elisa: `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
+Key principles:
+- Be precise and concise
+- Only explain when asked
+- Avoid dependencies unless specifically requested
+- Write clean, type-safe code
+- Prefer functions to classes`,
+      }
+
+      const apiKey = signal(localStorage.getItem('claudeApiKey') || '');
+      const prompt = signal('');
+      const response = signal('');
+      const error = signal('');
+      const isLoading = signal(false);
+
+      const selectedPersona = useSignal("alex");
 
       async function generateResponse() {
         if (!prompt.value.trim()) {
@@ -114,9 +128,9 @@ Key principles:
               messages: [
                 { role: 'user', content: prompt.value }
               ],
-              max_tokens: 4096,
+              max_tokens: 5096,
               temperature: 0.1,
-              system: systemPrompt,
+              system: personas[selectedPersona.value],
             })
           });
 
@@ -134,10 +148,26 @@ Key principles:
         }
       }
 
+  const handleChange = (e: Event) => {
+    const select = e.target as HTMLSelectElement;
+    selectedPersona.value = select.value;
+    systemPrompt.value = personas[select.value];
+  };
       function App() {
         return html`
           <div>
             <h1>Claude Assistant</h1>
+
+                <select 
+      value=${selectedPersona.value} 
+      onChange=${handleChange}
+    >
+      ${Object.keys(personas).map((key) => (
+        html`<option key=${key} value=${key}>
+          ${key}
+        </option>`
+      ))}
+    </select>
             
             <textarea
               placeholder="Enter your code-related question..."
