@@ -29,7 +29,14 @@
         const result = signal('');
         const error = signal('');
         const isLoading = signal(false);
-
+        const depth = signal('deep');
+        const depthToModelMap = {
+        'super duper deep': 'sonar-deep-research',
+        'dang deep':'sonar-reasoning-pro',
+        'deep':'sonar-reasoning',
+        '"deep"':'sonar-pro',
+        'good enough': 'sonar'
+        }
         function saveApiKey(key) {
             localStorage.setItem('perplexityApiKey', key);
             apiKey.value = key;
@@ -51,7 +58,7 @@
                     'Authorization': `Bearer ${apiKey.value}`
                 },
                 body: JSON.stringify({
-                    model: 'sonar-reasoning-pro',
+                    model: depthToModelMap[depth.value],
                     messages: [
                         {
                           "role": "system",
@@ -93,6 +100,9 @@
                     `}
                     
                     <h1>Perplexity</h1>
+                            <select value=${depth.value} onChange=${e => depth.value = e.target.value}>
+            ${Object.keys(depthToModelMap).map(option => html`<option value=${option}>${option}</option>`)}
+        </select>
                     <textarea 
                         placeholder="Ask your question..."
                         value=${question.value}
