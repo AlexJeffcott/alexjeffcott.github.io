@@ -2,27 +2,26 @@
 import { bundle, configs } from '../deno-esbuild/src/mod.ts'
 import * as esbuild from 'npm:esbuild@0.25.0'
 
-  const cfg = await configs.forPreact(
-    {
-      entryPoints: ['./src/main.tsx'],
-      write: true,
+const cfg = await configs.forPreact(
+  {
+    entryPoints: ['./src/main.tsx'],
+    write: true,
     publicPath: '/build',
     loader: {
-      '.woff2': 'copy'
-    }
+      '.woff2': 'copy',
     },
-    'deno.json',
-    'prod',
-    'browser',
-    '.env',
-  )
+  },
+  'deno.json',
+  'prod',
+  'browser',
+  '.env',
+)
 
-  bundle(
-    cfg,
-    esbuild.build,
-    esbuild.stop
-  )
-
+bundle(
+  cfg,
+  esbuild.build,
+  esbuild.stop,
+)
 
 //import {
 //  type Build,

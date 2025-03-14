@@ -58,24 +58,25 @@
   </head>
   <body>
     <script>
-      const apiKey = localStorage.getItem('claudeApiKey') || '';
+      const apiKey = localStorage.getItem('claudeApiKey') || ''
 
       if (!apiKey) {
-        const key = prompt('Please enter your Claude API key:');
-        if (key) saveApiKey(key);
+        const key = prompt('Please enter your Claude API key:')
+        if (key) saveApiKey(key)
       }
 
       function saveApiKey(key) {
-        localStorage.setItem('claudeApiKey', key);
-        apiKey.value = key;
+        localStorage.setItem('claudeApiKey', key)
+        apiKey.value = key
       }
     </script>
 
     <script type="module">
-      import { html, render, signal } from 'preact-stand-alone';
+      import { html, render, signal } from 'preact-stand-alone'
 
       const personas = {
-alex: `You are an expert TypeScript web engineer who specializes in Preact and signals.
+        alex:
+          `You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
 - Be precise and concise
 - Only explain when asked
@@ -87,7 +88,8 @@ Key principles:
 - Only use specified techs
 - Focus on modern web standards and best practices
 - If more information is needed, you ask.`,
-        elisa: `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
+        elisa:
+          `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
 Key principles:
 - Be precise and concise
 - Only explain when asked
@@ -96,61 +98,67 @@ Key principles:
 - Prefer functions to classes`,
       }
 
-      const apiKey = signal(localStorage.getItem('claudeApiKey') || '');
-      const prompt = signal('');
-      const response = signal('');
-      const error = signal('');
-      const isLoading = signal(false);
-      const selectedPersona = signal("alex");
+      const apiKey = signal(localStorage.getItem('claudeApiKey') || '')
+      const prompt = signal('')
+      const response = signal('')
+      const error = signal('')
+      const isLoading = signal(false)
+      const selectedPersona = signal('alex')
 
       async function generateResponse() {
         if (!prompt.value.trim()) {
-          error.value = 'Please enter a prompt';
-          return;
+          error.value = 'Please enter a prompt'
+          return
         }
 
-        isLoading.value = true;
-        error.value = '';
+        isLoading.value = true
+        error.value = ''
 
         try {
-          const result = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'anthropic-version': '2023-06-01',
-              'anthropic-dangerous-direct-browser-access': true,
-              'Authorization': `Bearer ${apiKey.value}`,
-              'X-Api-Key': apiKey.value
+          const result = await fetch(
+            'https://api.anthropic.com/v1/messages',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': true,
+                'Authorization': `Bearer ${apiKey.value}`,
+                'X-Api-Key': apiKey.value,
+              },
+              body: JSON.stringify({
+                model: 'claude-3-7-sonnet-20250219',
+                messages: [
+                  { role: 'user', content: prompt.value },
+                ],
+                max_tokens: 5096,
+                temperature: 0.1,
+                system: personas[selectedPersona.value],
+              }),
             },
-            body: JSON.stringify({
-              model: 'claude-3-7-sonnet-20250219',
-              messages: [
-                { role: 'user', content: prompt.value }
-              ],
-              max_tokens: 5096,
-              temperature: 0.1,
-              system: personas[selectedPersona.value],
-            })
-          });
+          )
 
           if (!result.ok) {
-            const errorData = await result.json();
-            throw new Error(errorData.error?.message || `HTTP error! status: ${result.status}`);
+            const errorData = await result.json()
+            throw new Error(
+              errorData.error?.message ||
+                `HTTP error! status: ${result.status}`,
+            )
           }
 
-          const data = await result.json();
-          response.value = data.content[0].text;
+          const data = await result.json()
+          response.value = data.content[0].text
         } catch (err) {
-          error.value = `Error: ${err.message}`;
+          error.value = `Error: ${err.message}`
         } finally {
-          isLoading.value = false;
+          isLoading.value = false
         }
       }
 
-  const handleChange = (e) => {
-    const select = e.target;
-    selectedPersona.value = select.value;
-  };
+      const handleChange = (e) => {
+        const select = e.target
+        selectedPersona.value = select.value
+      }
       function App() {
         return html`
           <div>
@@ -160,11 +168,13 @@ Key principles:
       value=${selectedPersona.value} 
       onChange=${handleChange}
     >
-      ${Object.keys(personas).map((key) => (
-        html`<option key=${key} value=${key}>
+      ${
+          Object.keys(personas).map((key) => (
+            html`<option key=${key} value=${key}>
           ${key}
         </option>`
-      ))}
+          ))
+        }
     </select>
             
             <textarea
@@ -177,18 +187,24 @@ Key principles:
               onClick=${generateResponse} 
               disabled=${isLoading.value || !prompt.value.trim()}
             >
-              ${isLoading.value ? 'Generating response...' : 'Get Answer'}
+              ${
+          isLoading.value ? 'Generating response...' : 'Get Answer'
+        }
             </button>
 
-            ${error.value && html`<div class="error">${error.value}</div>`}
-            ${response.value && html`
+            ${
+          error.value && html`<div class="error">${error.value}</div>`
+        }
+            ${
+          response.value && html`
               <pre><code>${response.value}</code></pre>
-            `}
+            `
+        }
           </div>
-        `;
+        `
       }
 
-      render(html`<${App} />`, document.body);
+      render(html`<${App} />`, document.body)
     </script>
   </body>
 </html>
