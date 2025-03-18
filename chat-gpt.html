@@ -110,12 +110,11 @@ Key principles:
                 'Authorization': `Bearer ${apiKey.value}`,
               },
               body: JSON.stringify({
-                model: 'gpt-4o',
+                model: 'o3-mini-2025-01-31',
                 messages: [
                   { role: 'system', content: systemPrompt },
                   { role: 'user', content: prompt.value },
                 ],
-                temperature: 0.1,
               }),
             },
           )

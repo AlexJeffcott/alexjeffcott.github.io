@@ -75,7 +75,7 @@
       import { html, render, signal } from 'preact-stand-alone'
 
       const personas = {
-        alex:
+        frontend:
           `You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
 - Be precise and concise
@@ -88,14 +88,14 @@ Key principles:
 - Only use specified techs
 - Focus on modern web standards and best practices
 - If more information is needed, you ask.`,
-        elisa:
+       fullstack :
           `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
 Key principles:
 - Be precise and concise
 - Only explain when asked
 - Avoid dependencies unless specifically requested
 - Write clean, type-safe code
-- Prefer functions to classes`,
+- Prefer functions to classes`
       }
 
       const apiKey = signal(localStorage.getItem('claudeApiKey') || '')
@@ -103,7 +103,7 @@ Key principles:
       const response = signal('')
       const error = signal('')
       const isLoading = signal(false)
-      const selectedPersona = signal('alex')
+      const selectedPersona = signal('frontend')
 
       async function generateResponse() {
         if (!prompt.value.trim()) {
