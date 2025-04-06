@@ -75,6 +75,15 @@
       import { html, render, signal } from 'preact-stand-alone'
 
       const personas = {
+godot:           `You are an expert Godot 4 game developer who specialises in making 2d games with gdscript.
+Key principles:
+- Be precise and concise
+- Only explain when asked
+- Avoid dependencies unless specifically requested
+- Prefer writing code-only solutions
+- Write clean, type-safe code
+- Focus on the newest features of Godot 4.3
+- If more information is needed or useful, you ask.`,
         frontend:
           `You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
@@ -87,7 +96,7 @@ Key principles:
 - Don't use Tailwind or css utilities
 - Only use specified techs
 - Focus on modern web standards and best practices
-- If more information is needed, you ask.`,
+- If more information is needed or useful, you ask.`,
        fullstack :
           `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
 Key principles:
@@ -132,7 +141,7 @@ Key principles:
                   { role: 'user', content: prompt.value },
                 ],
                 max_tokens: 5096,
-                temperature: 0.1,
+                temperature: 0.0,
                 system: personas[selectedPersona.value],
               }),
             },
