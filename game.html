@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@preact/signals-core": "https://cdn.jsdelivr.net/npm/@preact/signals-core@1.8.0/dist/signals-core.mjs"
+        }
+      }
+    </script>
+    <style>
+    </style>
+  </head>
+  <body>
+    <canvas id='canvas1'/>
+    <script type="module">
+      import { signal, effect, computed } from '@preact/signals-core'
+
+      const width = 500
+      const height = 500
+      
+      const spriteMap = new Map()
+      spriteMap.set('player.idle', new Array(21).fill('').map((v, i) => createImage(`robot_boy/player/sprites/idle/idle_${i}.png`)))
+      spriteMap.set('player.run_ready', new Array(11).fill('').map((v, i) => createImage(`robot_boy/player/sprites/run_ready/run_ready_${i}.png`)))
+      spriteMap.set('player.run_start', new Array(19).fill('').map((v, i) => createImage(`robot_boy/player/sprites/run_start/run_start_${i}.png`)))
+      spriteMap.set('player.punch', new Array(10).fill('').map((v, i) => createImage(`robot_boy/player/sprites/punch/punch_${i}.png`)))
+
+      const state = signal('initial') // initial, started, stopped
+
+      const canvas = document.getElementById('canvas1')
+      canvas.width = window.innerWidth * 0.66
+      canvas.height = window.innerHeight * 0.66
+      const ctx = canvas.getContext('2d')
+
+      const player = createElement(ctx, {name: 'player', state: 'idle', x: 0, y: 0, w: 796 * 0.2, h: 719 * 0.2})
+
+      function renderScene() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        player.render()
+        setTimeout(() => globalThis.requestAnimationFrame(renderScene), 20)
+      }
+
+      document.addEventListener('keydown', handleKeyDown)
+      
+      function createElement(ctx, opts) {
+        const x = signal(opts.x || 0)
+        const y = signal(opts.y || 0)
+        const w = signal(opts.w || 0)
+        const h= signal(opts.h || 0)
+        const frame = signal(0)
+        const state = signal(opts.state)
+        
+let s = opts.state
+        const img = computed(() => {
+          if (state.value !== s) {
+            frame.value = 0
+            s = state.value
+          }
+
+          return spriteMap.get(opts.name + '.' + state.value)[frame.value]
+        })
+
+        let cachedOuterState = opts.state
+
+        const render = () => {
+          const cachedImg = img.value
+          const cachedState = state.value
+          const cachedFrame = frame.value
+
+          ctx.drawImage(cachedImg, x.value, y.value, w.value, h.value)
+
+          if (cachedOuterState !== cachedState) {
+             frame.value = 0
+          }
+
+          if (frame.value < spriteMap.get(opts.name + '.' + state.value).length - 1) {
+            frame.value++
+          } else {
+            frame.value = 0
+            if (state.value === 'punch') {
+              state.value = 'idle'
+            }
+          }
+
+          cachedOuterState = cachedState
+        }
+        return ({ name: opts.name, img, frame, state, x, y, w, h, render})
+      }
+
+      function handleKeyDown(event) {
+      if (event.code === 'Space') {
+        player.state.value = 'punch'
+      }
+    };
+
+      function createImage(src) {
+        const image = new Image()
+        image.src = src
+        return image
+      }
+
+      // start
+      state.value = 'started'
+      renderScene()
+    </script>
+  </body>
+</html>
